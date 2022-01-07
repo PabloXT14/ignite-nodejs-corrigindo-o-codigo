@@ -6,7 +6,13 @@ const app = express();
 
 app.use(express.json());
 
-const repositories = [];
+const repositories = [];// DB fake
+
+/* ===== MIDDLEWARES ===== */
+
+
+/* ===== ROTAS ===== */
+
 
 app.get("/repositories", (request, response) => {
   return response.json(repositories);
@@ -23,24 +29,34 @@ app.post("/repositories", (request, response) => {
     likes: 0
   };
 
-  return response.json(repository);
+  // Inserindo repositório no DB fake
+  repositories.push(repository);
+
+  return response.status(201).json(repository);
 });
 
 app.put("/repositories/:id", (request, response) => {
   const { id } = request.params;
-  const updatedRepository = request.body;
+  const newDatas = request.body;// objeto com dados atualizados para o repositorio
 
-  repositoryIndex = repositories.findindex(repository => repository.id === id);
+  const repositoryIndex = repositories.findindex(repository => repository.id === id);
 
-  if (repositoryIndex < 0) {
+  //Verificando se repo existe
+  if (repositoryIndex === -1) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
-  const repository = { ...repositories[repositoryIndex], ...updatedRepository };
+  const updatedRepository = {
+    ...repositories[repositoryIndex],
+    title: newDatas.title || repositories[repositoryIndex].title,
+    url: newDatas.url || repositories[repositoryIndex].url,
+    techs: newDatas.techs || repositories[repositoryIndex].techs
+  };
+  console.log(updatedRepository);
 
-  repositories[repositoryIndex] = repository;
+  repositories[repositoryIndex] = updatedRepository;
 
-  return response.json(repository);
+  return response.json(updatedRepository);
 });
 
 app.delete("/repositories/:id", (request, response) => {
