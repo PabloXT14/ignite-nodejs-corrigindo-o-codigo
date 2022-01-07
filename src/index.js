@@ -13,7 +13,6 @@ const repositories = [];// DB fake
 
 /* ===== ROTAS ===== */
 
-
 app.get("/repositories", (request, response) => {
   return response.json(repositories);
 });
@@ -37,23 +36,24 @@ app.post("/repositories", (request, response) => {
 
 app.put("/repositories/:id", (request, response) => {
   const { id } = request.params;
-  const newDatas = request.body;// objeto com dados atualizados para o repositorio
+  const { title, url, techs } = request.body;// objeto com dados atualizados para o repositorio
 
-  const repositoryIndex = repositories.findindex(repository => repository.id === id);
+  const repositoryIndex = repositories.findIndex(repository => repository.id === id);
 
   //Verificando se repo existe
   if (repositoryIndex === -1) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
+  // Formatando novos valores no repo
   const updatedRepository = {
     ...repositories[repositoryIndex],
-    title: newDatas.title || repositories[repositoryIndex].title,
-    url: newDatas.url || repositories[repositoryIndex].url,
-    techs: newDatas.techs || repositories[repositoryIndex].techs
+    title: title != undefined ? title : updatedRepository.title,
+    url: url != undefined ? url : updatedRepository.url,
+    techs: techs != undefined ? techs : updatedRepository.techs
   };
-  console.log(updatedRepository);
 
+  // Inserindo repo atualizado no DB fake
   repositories[repositoryIndex] = updatedRepository;
 
   return response.json(updatedRepository);
