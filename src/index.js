@@ -8,8 +8,6 @@ app.use(express.json());
 
 const repositories = [];// DB fake
 
-/* ===== MIDDLEWARES ===== */
-
 
 /* ===== ROTAS ===== */
 
@@ -36,7 +34,7 @@ app.post("/repositories", (request, response) => {
 
 app.put("/repositories/:id", (request, response) => {
   const { id } = request.params;
-  const { title, url, techs } = request.body;// objeto com dados atualizados para o repositorio
+  const updatedDatas = request.body;// objeto com dados atualizados para o repositorio
 
   const repositoryIndex = repositories.findIndex(repository => repository.id === id);
 
@@ -48,9 +46,9 @@ app.put("/repositories/:id", (request, response) => {
   // Formatando novos valores no repo
   const updatedRepository = {
     ...repositories[repositoryIndex],
-    title: title != undefined ? title : updatedRepository.title,
-    url: url != undefined ? url : updatedRepository.url,
-    techs: techs != undefined ? techs : updatedRepository.techs
+    title: updatedDatas.title || repositories[repositoryIndex].title,
+    url: updatedDatas.url || repositories[repositoryIndex].url,
+    techs: updatedDatas.techs || repositories[repositoryIndex].techs
   };
 
   // Inserindo repo atualizado no DB fake
@@ -62,9 +60,10 @@ app.put("/repositories/:id", (request, response) => {
 app.delete("/repositories/:id", (request, response) => {
   const { id } = request.params;
 
-  repositoryIndex = repositories.findIndex(repository => repository.id === id);
 
-  if (repositoryIndex > 0) {
+  const repositoryIndex = repositories.findIndex(repository => repository.id === id);
+
+  if (repositoryIndex === -1) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
@@ -76,15 +75,16 @@ app.delete("/repositories/:id", (request, response) => {
 app.post("/repositories/:id/like", (request, response) => {
   const { id } = request.params;
 
-  repositoryIndex = repositories.findIndex(repository => repository.id === id);
+  const repositoryIndex = repositories.findIndex(repository => repository.id === id);
 
-  if (repositoryIndex < 0) {
+  if (repositoryIndex === -1) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
+  // Atualizando likes do repo
   const likes = ++repositories[repositoryIndex].likes;
 
-  return response.json('likes');
+  return response.json(repositories[repositoryIndex]);
 });
 
 module.exports = app;
