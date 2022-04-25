@@ -1,90 +1,90 @@
-const express = require("express");
+const express = require('express');
+const {v4: uuidv4} = require('uuid');
 
-const { v4: uuid } = require("uuid");
-
-const app = express();
+const app = express()
 
 app.use(express.json());
 
-const repositories = [];// DB fake
+const respositories = [];
+
+
+/* ===== MIDDLEWARES ===== */
 
 
 /* ===== ROTAS ===== */
 
-app.get("/repositories", (request, response) => {
-  return response.json(repositories);
+app.get('/repositories', (request, response) => {
+  return response.status(200).json(respositories);
 });
 
-app.post("/repositories", (request, response) => {
-  const { title, url, techs } = request.body
+app.post('/repositories', (request, response) => {
+  const { title, url, techs } = request.body;
 
-  const repository = {
-    id: uuid(),
+  const newRepository = {
+    id: uuidv4(),
     title,
     url,
     techs,
     likes: 0
+  }
+
+  respositories.push(newRepository);
+
+  return response.status(201).json(newRepository);
+
+});
+
+app.put('/repositories/:id', (request, response) => {
+  const { id } = request.params;
+  const { title, url, techs } = request.body;
+
+  const repositoryIndex = respositories.findIndex(repository => repository.id === id);
+
+  // Checando se repositorio existe
+  if(repositoryIndex < 0) {
+    return response.status(404).json({ error: "Repository not found" });
+  }
+
+  // Atualizando dados do repositorio
+  const repository = { 
+    ...respositories[repositoryIndex],
+    title: title ? title : respositories[repositoryIndex].title,
+    url: url ? url : respositories[repositoryIndex].url,
+    techs: techs ? techs : respositories[repositoryIndex].techs
   };
 
-  // Inserindo repositório no DB fake
-  repositories.push(repository);
+  respositories[repositoryIndex] = repository;
 
   return response.status(201).json(repository);
 });
 
-app.put("/repositories/:id", (request, response) => {
+app.delete('/repositories/:id', (request, response) => {
   const { id } = request.params;
-  const updatedDatas = request.body;// objeto com dados atualizados para o repositorio
 
-  const repositoryIndex = repositories.findIndex(repository => repository.id === id);
+  const repositoryIndex = respositories.findIndex(repository => repository.id === id)
 
-  //Verificando se repo existe
-  if (repositoryIndex === -1) {
+  if(repositoryIndex < 0) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
-  // Formatando novos valores no repo
-  const updatedRepository = {
-    ...repositories[repositoryIndex],
-    title: updatedDatas.title || repositories[repositoryIndex].title,
-    url: updatedDatas.url || repositories[repositoryIndex].url,
-    techs: updatedDatas.techs || repositories[repositoryIndex].techs
-  };
+  respositories.splice(repositoryIndex, 1);
 
-  // Inserindo repo atualizado no DB fake
-  repositories[repositoryIndex] = updatedRepository;
-
-  return response.json(updatedRepository);
-});
-
-app.delete("/repositories/:id", (request, response) => {
-  const { id } = request.params;
-
-
-  const repositoryIndex = repositories.findIndex(repository => repository.id === id);
-
-  if (repositoryIndex === -1) {
-    return response.status(404).json({ error: "Repository not found" });
-  }
-
-  repositories.splice(repositoryIndex, 1);
-
-  return response.status(204).send();
+  return response.status(204).end();
 });
 
 app.post("/repositories/:id/like", (request, response) => {
   const { id } = request.params;
 
-  const repositoryIndex = repositories.findIndex(repository => repository.id === id);
+  const repositoryIndex = respositories.findIndex(respository => respository.id === id);
 
-  if (repositoryIndex === -1) {
+  if(repositoryIndex < 0) {
     return response.status(404).json({ error: "Repository not found" });
   }
 
-  // Atualizando likes do repo
-  const likes = ++repositories[repositoryIndex].likes;
+  ++respositories[repositoryIndex].likes;
+  const repositoryUpdated = respositories[repositoryIndex];
 
-  return response.json(repositories[repositoryIndex]);
+  return response.status(201).json(repositoryUpdated);
 });
 
 module.exports = app;
